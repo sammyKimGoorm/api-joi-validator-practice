@@ -2,6 +2,15 @@ const Joi = require("joi");
 const { pick } = require("lodash");
 const ApiError = require("../utils/errors/apiError");
 
+const _makeErrorMessage = (details) =>
+    details
+        .map((details) => details.message)
+        .join(", ")
+        .replaceAll('"', "");
+
+const _makeErrorMessageWithList = (details) =>
+    details.map((details) => details.message.replaceAll('"', ""));
+
 exports.validate = (schema) => (req, res, next) => {
     const validSchema = pick(schema, ["query", "body", "params"]);
     const object = pick(req, Object.keys(validSchema));
@@ -11,10 +20,8 @@ exports.validate = (schema) => (req, res, next) => {
         .validate(object);
 
     if (error) {
-        const errorMessage = error.details
-            .map((details) => details.message)
-            .join(", ")
-            .replaceAll('"', "");
+        // const errorMessage = _makeErrorMessage(error.details);
+        const errorMessage = _makeErrorMessageWithList(error.details);
 
         return next(
             new ApiError({
@@ -38,10 +45,7 @@ exports.validateWithErrorHandle = (schema) => (req, res, next) => {
         .validate(object);
 
     if (error) {
-        const errorMessage = error.details
-            .map((details) => details.message)
-            .join(", ")
-            .replaceAll('"', "");
+        const errorMessage = _makeErrorMessage(error.details);
 
         return res
             .status(444)
