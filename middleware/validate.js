@@ -2,6 +2,7 @@ const Joi = require("joi");
 const { pick } = require("lodash");
 const httpStatus = require("http-status");
 const ApiError = require("../utils/errors/apiError");
+const { makeResJson } = require("../utils/errors");
 
 const _makeErrorMessage = (details) =>
     details
@@ -55,11 +56,15 @@ exports.validateWithErrorHandle = (schema) => (req, res, next) => {
     if (error) {
         const errorMessage = _makeErrorMessage(error.details);
 
-        return res.status(httpStatus.BAD_REQUEST).json({
-            message: errorMessage,
-            code: error.name,
-            asdf: "this is error handler in api",
-        });
+        // return res.status(httpStatus.BAD_REQUEST).json({
+        //     message: errorMessage,
+        //     code: error.name,
+        //     asdf: "this is error handler in api",
+        // });
+
+        return res
+            .status(httpStatus.BAD_REQUEST)
+            .json(makeResJson(false, error.name, errorMessage));
     }
 
     Object.assign(req, value);
