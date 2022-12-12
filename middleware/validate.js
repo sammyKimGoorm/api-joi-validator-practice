@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const { pick } = require("lodash");
+const httpStatus = require("http-status");
 const ApiError = require("../utils/errors/apiError");
 
 const _makeErrorMessage = (details) =>
@@ -21,7 +22,6 @@ exports.validate =
         const validSchema = pick(schema, ["query", "body", "params"]);
         const object = pick(req, Object.keys(validSchema));
 
-        console.log({convert})
         const { value, error } = Joi.compile(validSchema)
             .prefs({ errors: { label: "key" }, abortEarly: false })
             .validate(object, { convert });
@@ -33,7 +33,7 @@ exports.validate =
 
             return next(
                 new ApiError({
-                    statusCode: 400,
+                    statusCode: httpStatus.BAD_REQUEST,
                     message: errorMessage,
                     errorCode: error.name,
                 })
@@ -55,7 +55,7 @@ exports.validateWithErrorHandle = (schema) => (req, res, next) => {
     if (error) {
         const errorMessage = _makeErrorMessage(error.details);
 
-        return res.status(444).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
             message: errorMessage,
             code: error.name,
             asdf: "this is error handler in api",
