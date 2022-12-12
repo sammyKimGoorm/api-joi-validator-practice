@@ -12,14 +12,19 @@ const _makeErrorMessageWithList = (details) =>
     details.map((details) => details.message.replaceAll('"', ""));
 
 exports.validate =
-    (schema, useAnotherMessage = false) =>
+    (
+        schema,
+        // convert - when true, attempts to cast values to the required types (e.g. a string to a number). Defaults to true.
+        { convert = true, useAnotherMessage = false /* test option */ } = {}
+    ) =>
     (req, res, next) => {
         const validSchema = pick(schema, ["query", "body", "params"]);
         const object = pick(req, Object.keys(validSchema));
 
+        console.log({convert})
         const { value, error } = Joi.compile(validSchema)
             .prefs({ errors: { label: "key" }, abortEarly: false })
-            .validate(object);
+            .validate(object, { convert });
 
         if (error) {
             const errorMessage = useAnotherMessage
@@ -50,13 +55,11 @@ exports.validateWithErrorHandle = (schema) => (req, res, next) => {
     if (error) {
         const errorMessage = _makeErrorMessage(error.details);
 
-        return res
-            .status(444)
-            .json({
-                message: errorMessage,
-                code: error.name,
-                asdf: "this is error handler in api",
-            });
+        return res.status(444).json({
+            message: errorMessage,
+            code: error.name,
+            asdf: "this is error handler in api",
+        });
     }
 
     Object.assign(req, value);
